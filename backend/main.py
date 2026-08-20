@@ -74,13 +74,15 @@ app = FastAPI(
 # dev server (e.g. Live Server on port 5500).  Add or adjust origins as needed.
 # In production, replace with your actual frontend domain.
 ALLOWED_ORIGINS: list[str] = [
-    "http://localhost:5500",        # VS Code Live Server default
+    "http://localhost:5500",        # VS Code Live Server
     "http://127.0.0.1:5500",
-    "http://localhost:3000",        # common React / Vite dev server
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "null",                         # file:// origin (browser sends "null")
+    "null",                         # file:// origin
+    # Vercel deployments — covers all preview + production URLs
+    "https://scientific-calculator-with-ai-voice-assistant-gg4wj2le8.vercel.app",
 ]
 
 # Allow extra origins from .env  (comma-separated)
@@ -91,6 +93,7 @@ if extra:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",   # all Vercel preview URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -18,7 +18,15 @@
 // 1. CONFIG
 // ═══════════════════════════════════════════════════════════════════════════
 
-const API_BASE = "http://127.0.0.1:8001/api";
+// ── API base URL ──────────────────────────────────────────────────────────
+// Automatically uses localhost when running locally,
+// and your Render backend URL when deployed on Vercel/Netlify.
+// TO DEPLOY: replace the render URL below with your actual Render service URL.
+const RENDER_API = "https://scicalc-api.onrender.com/api";
+const LOCAL_API  = "http://127.0.0.1:8001/api";
+const API_BASE   = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? LOCAL_API
+  : RENDER_API;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 2. STATE
@@ -30,6 +38,7 @@ const state = {
   mode: "DEG",        // "DEG" or "RAD"
   historyOpen: false, // whether the history panel is visible
   calculating: false, // prevent double-submit
+  justCalculated: false, // true after = or voice → next input starts fresh
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -111,8 +120,29 @@ function clearStatus() {
  * but not for operators or numbers.
  */
 function insertValue(value) {
+  // After a completed calculation (= or voice), next input starts fresh —
+  // UNLESS the user presses an operator (then they want to continue with result)
+  if (state.justCalculated) {
+    const isOperator = ["+", "-", "×", "÷", "%", "**", "^"].includes(value);
+    if (isOperator) {
+      // Continue: use the last result as the left operand
+      state.expression = state.result + value;
+    } else if (value === "+/-") {
+      // Negate the result
+      state.expression = state.result.startsWith("-")
+        ? state.result.slice(1)
+        : "-" + state.result;
+    } else {
+      // Number, function, paren → start completely fresh
+      state.expression = value;
+    }
+    state.justCalculated = false;
+    clearStatus();
+    renderExpression();
+    return;
+  }
+
   if (value === "+/-") {
-    // Negate: wrap the whole expression in negation
     if (state.expression === "") return;
     if (state.expression.startsWith("-")) {
       state.expression = state.expression.slice(1);
@@ -129,12 +159,21 @@ function insertValue(value) {
 function clearAll() {
   state.expression = "";
   state.result = "0";
+  state.justCalculated = false;
   renderExpression();
   renderResult("0");
   clearStatus();
 }
 
 function deleteLast() {
+  // If just calculated, DEL clears the result and starts fresh
+  if (state.justCalculated) {
+    state.expression = "";
+    state.justCalculated = false;
+    renderExpression();
+    clearStatus();
+    return;
+  }
   // If the expression ends with a multi-char function token, remove the whole token
   const funcMatch = state.expression.match(/[a-z]+\($/i);
   if (funcMatch) {
@@ -237,6 +276,7 @@ async function calculate() {
     state.result = formatted;
     renderResult(formatted);
     setStatus("", "success");
+    state.justCalculated = true; // next input starts fresh
 
     // Reload history if panel is open
     if (state.historyOpen) {
@@ -807,6 +847,11 @@ async function processVoiceCommand(transcript) {
 
   updateVoiceUI("processing");
 
+  // Clear previous error cards so they don't pile up
+  if (vDom.resultArea) {
+    vDom.resultArea.querySelectorAll(".error-card").forEach(el => el.remove());
+  }
+
   try {
     const response = await fetch(`${API_BASE}/voice/command`, {
       method: "POST",
@@ -828,11 +873,15 @@ async function processVoiceCommand(transcript) {
     displayVoiceResult(data);
 
     // ── Push result into the main calculator display ──────────────────
-    state.expression = data.expression;
-    state.result     = formatResult(data.result);
+    state.expression     = data.expression;
+    state.result         = formatResult(data.result);
+    state.justCalculated = true;   // next button press starts fresh
     renderExpression();
     renderResult(state.result);
     clearStatus();
+
+    // Flash the calc display so the user sees voice populated it
+    _flashCalcDisplay();
 
     // ── Reload history if open ────────────────────────────────────────
     if (state.historyOpen) loadHistory();
