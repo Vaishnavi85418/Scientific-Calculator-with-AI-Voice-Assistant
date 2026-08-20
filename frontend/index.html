@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SciCalc – Advanced Scientific Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+  <!-- ═══════════════════════════  APP SHELL  ═══════════════════════════ -->
+  <div class="app-shell">
+
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="brand-icon">∑</span>
+        <div>
+          <h1 class="brand-name">SciCalc</h1>
+          <p class="brand-sub">Advanced Scientific Calculator</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- History toggle -->
+        <button
+          id="btn-history-toggle"
+          class="icon-btn"
+          title="Calculation History"
+          aria-label="Toggle history panel"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="12 8 12 12 14 14"/>
+            <path d="M3.05 11a9 9 0 1 0 .5-4"/>
+            <polyline points="3 3 3 7 7 7"/>
+          </svg>
+          <span>History</span>
+        </button>
+        <!-- Theme toggle -->
+        <button
+          id="btn-theme"
+          class="icon-btn theme-btn"
+          title="Toggle dark/light mode"
+          aria-label="Toggle theme"
+        >
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Main content ───────────────────────────────────────────────── -->
+    <main class="app-main" id="app-main">
+
+      <!-- ══════════════  AI VOICE AGENT CARD  ══════════════ -->
+      <aside class="voice-card" id="voice-card" aria-label="AI Voice Calculator">
+
+        <!-- Card header -->
+        <div class="voice-card-header">
+          <div class="voice-card-title">
+            <span class="voice-card-icon">🤖</span>
+            <div>
+              <span class="voice-card-name">AI Calculator</span>
+              <span class="voice-card-sub">Speak any calculation</span>
+            </div>
+          </div>
+          <div class="voice-header-controls">
+            <!-- Voice output toggle -->
+            <button id="btn-voice-output" class="voice-toggle-btn" title="Toggle voice response" aria-label="Toggle voice response on/off" aria-pressed="true">
+              <svg class="icon-speaker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mic button + status -->
+        <div class="voice-mic-area">
+          <button id="btn-mic" class="mic-btn" aria-label="Start voice recognition" title="Tap to speak">
+            <span class="mic-rings"></span>
+            <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8"  y1="23" x2="16" y2="23"/>
+            </svg>
+            <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+            </svg>
+          </button>
+          <div class="voice-status-wrap">
+            <span id="voice-status" class="voice-status idle">Tap to Speak</span>
+            <div class="voice-wave" id="voice-wave" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transcript / result display -->
+        <div id="voice-result-area" class="voice-result-area" aria-live="polite"></div>
+
+        <!-- Examples panel -->
+        <div class="voice-examples">
+          <p class="voice-examples-label">Try saying:</p>
+          <div class="voice-chips">
+            <button class="voice-chip" data-cmd="Add 25 and 35">"Add 25 and 35"</button>
+            <button class="voice-chip" data-cmd="Multiply 12 by 8">"Multiply 12 by 8"</button>
+            <button class="voice-chip" data-cmd="Square root of 144">"Square root of 144"</button>
+            <button class="voice-chip" data-cmd="Sine of 30 degrees">"Sine of 30 degrees"</button>
+            <button class="voice-chip" data-cmd="100 divided by 4">"100 divided by 4"</button>
+            <button class="voice-chip" data-cmd="What is 20 percent of 500">"20 percent of 500"</button>
+          </div>
+        </div>
+
+      </aside>
+      <!-- /voice-card -->
+
+      <!-- Calculator card -->
+      <section class="calculator-card" role="main" aria-label="Scientific calculator">
+
+        <!-- ── Display ──────────────────────────────────────────────── -->
+        <div class="display-area">
+          <div class="display-meta">
+            <span id="mode-badge" class="mode-badge">DEG</span>
+            <span id="status-msg" class="status-msg" aria-live="polite"></span>
+          </div>
+          <div
+            id="expression-display"
+            class="expression-display"
+            role="textbox"
+            aria-label="Current expression"
+            aria-readonly="true"
+          ></div>
+          <div class="result-row">
+            <div
+              id="result-display"
+              class="result-display"
+              aria-label="Result"
+              aria-live="assertive"
+            >0</div>
+            <button
+              id="btn-copy"
+              class="copy-btn"
+              title="Copy result"
+              aria-label="Copy result to clipboard"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Mode & utility bar ───────────────────────────────────── -->
+        <div class="mode-bar">
+          <button id="btn-deg" class="mode-btn active" data-mode="DEG" aria-pressed="true">DEG</button>
+          <button id="btn-rad" class="mode-btn"         data-mode="RAD" aria-pressed="false">RAD</button>
+          <div class="mode-bar-spacer"></div>
+          <button id="btn-ac"  class="util-btn danger"  aria-label="Clear all">AC</button>
+          <button id="btn-del" class="util-btn warning"  aria-label="Backspace">⌫</button>
+        </div>
+
+        <!-- ── Button grid ──────────────────────────────────────────── -->
+        <div class="button-grid">
+
+          <!-- Row 1: inverse trig -->
+          <button class="calc-btn sci"  data-action="insert" data-value="asin(" >asin</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="acos(" >acos</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="atan(" >atan</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="factorial(">n!</button>
+
+          <!-- Row 2: trig -->
+          <button class="calc-btn sci"  data-action="insert" data-value="sin("  >sin</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="cos("  >cos</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="tan("  >tan</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="abs("  >|x|</button>
+
+          <!-- Row 3: hyperbolic -->
+          <button class="calc-btn sci"  data-action="insert" data-value="sinh(" >sinh</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="cosh(" >cosh</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="tanh(" >tanh</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="exp("  >eˣ</button>
+
+          <!-- Row 4: logarithm / roots -->
+          <button class="calc-btn sci"  data-action="insert" data-value="log("  >log</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="ln("   >ln</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="sqrt(" >√x</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="cbrt(" >∛x</button>
+
+          <!-- Row 5: powers / misc -->
+          <button class="calc-btn sci"  data-action="insert" data-value="**2"   >x²</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="**3"   >x³</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="**"    >xʸ</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="1/"    >1/x</button>
+
+          <!-- Row 6: rounding / constants -->
+          <button class="calc-btn sci"  data-action="insert" data-value="floor(">⌊x⌋</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="ceil(" >⌈x⌉</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="round(">rnd</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="%"     >mod</button>
+
+          <!-- Row 7: parens / constants -->
+          <button class="calc-btn sci"  data-action="insert" data-value="pi"   >π</button>
+          <button class="calc-btn sci"  data-action="insert" data-value="e"    >e</button>
+          <button class="calc-btn paren" data-action="insert" data-value="("   >(</button>
+          <button class="calc-btn paren" data-action="insert" data-value=")"   >)</button>
+
+          <!-- Row 8: 7 8 9 ÷ -->
+          <button class="calc-btn num"  data-action="insert" data-value="7">7</button>
+          <button class="calc-btn num"  data-action="insert" data-value="8">8</button>
+          <button class="calc-btn num"  data-action="insert" data-value="9">9</button>
+          <button class="calc-btn op"   data-action="insert" data-value="÷">÷</button>
+
+          <!-- Row 9: 4 5 6 × -->
+          <button class="calc-btn num"  data-action="insert" data-value="4">4</button>
+          <button class="calc-btn num"  data-action="insert" data-value="5">5</button>
+          <button class="calc-btn num"  data-action="insert" data-value="6">6</button>
+          <button class="calc-btn op"   data-action="insert" data-value="×">×</button>
+
+          <!-- Row 10: 1 2 3 − -->
+          <button class="calc-btn num"  data-action="insert" data-value="1">1</button>
+          <button class="calc-btn num"  data-action="insert" data-value="2">2</button>
+          <button class="calc-btn num"  data-action="insert" data-value="3">3</button>
+          <button class="calc-btn op"   data-action="insert" data-value="-">−</button>
+
+          <!-- Row 11: 0 . % + -->
+          <button class="calc-btn num"  data-action="insert" data-value="0">0</button>
+          <button class="calc-btn num"  data-action="insert" data-value=".">.</button>
+          <button class="calc-btn num"  data-action="insert" data-value="+/-" id="btn-negate">±</button>
+          <button class="calc-btn op"   data-action="insert" data-value="+">+</button>
+
+          <!-- Row 12: = spans 4 cols -->
+          <button
+            class="calc-btn equals"
+            data-action="calculate"
+            aria-label="Calculate"
+            id="btn-equals"
+          >=</button>
+
+        </div>
+        <!-- /button-grid -->
+
+      </section>
+      <!-- /calculator-card -->
+
+    </main>
+
+  </div>
+  <!-- /app-shell -->
+
+  <!-- ═══════════════════════  HISTORY PANEL  ═══════════════════════════ -->
+  <aside id="history-panel" class="history-panel" aria-label="Calculation history" aria-hidden="true">
+    <div class="history-header">
+      <h2>History</h2>
+      <div class="history-header-actions">
+        <button id="btn-clear-history" class="text-btn danger" aria-label="Clear all history">
+          Clear all
+        </button>
+        <button id="btn-history-close" class="icon-btn small" aria-label="Close history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6"  y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="history-list" class="history-list" role="list">
+      <p class="history-empty">No calculations yet.</p>
+    </div>
+  </aside>
+
+  <!-- Overlay backdrop -->
+  <div id="history-overlay" class="history-overlay" aria-hidden="true"></div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

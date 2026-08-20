@@ -1,0 +1,1159 @@
+/* =========================================================
+   SciCalc – style.css
+   No-scroll layout: the entire calculator fits in 100dvh.
+   Supports dark (default) and light themes via [data-theme].
+   ========================================================= */
+
+/* ── 1. CSS Custom Properties ─────────────────────────────────────────── */
+:root {
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Border radius */
+  --r-sm:   0.3rem;
+  --r-md:   0.6rem;
+  --r-lg:   0.9rem;
+  --r-xl:   1.2rem;
+  --r-full: 9999px;
+
+  /* Transition */
+  --t-fast:   110ms ease;
+  --t-normal: 200ms ease;
+  --t-slow:   340ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Shadows */
+  --shadow-md: 0 4px 12px rgba(0,0,0,.18);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.25);
+}
+
+/* ── Dark theme (default) ─────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-page:        #0f1117;
+  --bg-card:        #1a1d27;
+  --bg-display:     #12141e;
+  --bg-btn-num:     #252836;
+  --bg-btn-sci:     #1e2133;
+  --bg-btn-op:      #2a2040;
+  --bg-btn-equals:  #6c47ff;
+  --bg-btn-paren:   #1e2a3a;
+  --bg-mode-active: #6c47ff;
+  --bg-mode-idle:   #252836;
+  --bg-history:     #1a1d27;
+  --bg-history-item:#21253a;
+  --bg-overlay:     rgba(0,0,0,0.55);
+
+  --c-text:        #e8eaf6;
+  --c-text-dim:    #7b82a8;
+  --c-text-muted:  #4a5080;
+  --c-result:      #ffffff;
+  --c-expression:  #9fa8da;
+  --c-sci:         #82b1ff;
+  --c-op:          #ce93d8;
+  --c-equals-text: #ffffff;
+  --c-danger:      #ff6b6b;
+  --c-warning:     #ffc947;
+  --c-success:     #69f0ae;
+
+  --border:        rgba(255,255,255,0.06);
+  --border-focus:  #6c47ff;
+
+  --header-bg:     rgba(15,17,23,0.90);
+  --glass-bg:      rgba(26,29,39,0.85);
+  --glass-border:  rgba(255,255,255,0.08);
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-page:        #f0f2fc;
+  --bg-card:        #ffffff;
+  --bg-display:     #f7f8ff;
+  --bg-btn-num:     #f0f2fc;
+  --bg-btn-sci:     #e8ecff;
+  --bg-btn-op:      #ede8ff;
+  --bg-btn-equals:  #6c47ff;
+  --bg-btn-paren:   #e2f0ff;
+  --bg-mode-active: #6c47ff;
+  --bg-mode-idle:   #e8ecff;
+  --bg-history:     #ffffff;
+  --bg-history-item:#f5f7ff;
+  --bg-overlay:     rgba(0,0,0,0.30);
+
+  --c-text:        #1a1d2e;
+  --c-text-dim:    #5a6080;
+  --c-text-muted:  #9aa0c0;
+  --c-result:      #1a1d2e;
+  --c-expression:  #4a50a0;
+  --c-sci:         #3d5afe;
+  --c-op:          #7b1fa2;
+  --c-equals-text: #ffffff;
+  --c-danger:      #e53935;
+  --c-warning:     #f57c00;
+  --c-success:     #2e7d32;
+
+  --border:        rgba(0,0,0,0.08);
+  --border-focus:  #6c47ff;
+
+  --header-bg:     rgba(240,242,252,0.92);
+  --glass-bg:      rgba(255,255,255,0.88);
+  --glass-border:  rgba(0,0,0,0.08);
+}
+
+/* ── 2. Reset & base ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  /* Hard lock – no page scroll ever */
+  overflow: hidden;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-page);
+  color: var(--c-text);
+  transition: background var(--t-normal), color var(--t-normal);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ── 3. App shell — fills exactly the viewport ────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;          /* full viewport, no overflow */
+  overflow: hidden;
+}
+
+/* ── 4. Header ────────────────────────────────────────────────────────── */
+.app-header {
+  flex-shrink: 0;          /* never squish the header */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem;
+  background: var(--header-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--t-normal);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #6c47ff;
+  text-shadow: 0 0 16px rgba(108,71,255,0.55);
+}
+
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--c-text);
+}
+
+.brand-sub {
+  font-size: 0.65rem;
+  color: var(--c-text-dim);
+  letter-spacing: 0.2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── 5. Icon buttons ──────────────────────────────────────────────────── */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--r-md);
+  color: var(--c-text-dim);
+  font-size: 0.76rem;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.icon-btn svg { width: 0.9rem; height: 0.9rem; }
+.icon-btn:hover {
+  background: var(--bg-btn-num);
+  color: var(--c-text);
+  border-color: var(--border-focus);
+}
+.icon-btn.small { padding: 0.2rem 0.35rem; }
+
+.theme-btn .sun-icon  { display: none; }
+.theme-btn .moon-icon { display: block; }
+[data-theme="light"] .theme-btn .sun-icon  { display: block; }
+[data-theme="light"] .theme-btn .moon-icon { display: none; }
+
+/* ── 6. Main — takes up all remaining height ──────────────────────────── */
+.app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  overflow: hidden;
+}
+
+/* ── 7. Calculator card ───────────────────────────────────────────────── */
+.calculator-card {
+  /*
+   * Width: capped at 460px on wide screens, full width on mobile.
+   * Height: fits inside the remaining space with a small margin.
+   * We use a column flex so each section can shrink/grow to fill.
+   */
+  width: min(460px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: background var(--t-normal), border-color var(--t-normal);
+}
+
+/* ── 8. Display area ──────────────────────────────────────────────────── */
+.display-area {
+  flex-shrink: 0;
+  background: var(--bg-display);
+  padding: 0.6rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--t-normal);
+}
+
+.display-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.mode-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  background: rgba(108,71,255,0.18);
+  color: #8c6fff;
+  border: 1px solid rgba(108,71,255,0.3);
+}
+
+.status-msg {
+  font-size: 0.67rem;
+  color: var(--c-text-muted);
+  min-height: 1em;
+  transition: color var(--t-fast);
+}
+.status-msg.error   { color: var(--c-danger); }
+.status-msg.success { color: var(--c-success); }
+
+.expression-display {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--c-expression);
+  min-height: 1.2rem;
+  word-break: break-all;
+  line-height: 1.4;
+  letter-spacing: 0.1px;
+  /* clamp so a long expression doesn't blow up the display */
+  max-height: 2.8rem;
+  overflow: hidden;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.result-display {
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 600;
+  color: var(--c-result);
+  line-height: 1.1;
+  flex: 1;
+  word-break: break-all;
+}
+
+.result-display.pop {
+  animation: result-pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes result-pop {
+  0%   { transform: scale(0.93); opacity: 0.6; }
+  100% { transform: scale(1);    opacity: 1;   }
+}
+
+/* Copy button */
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: var(--r-md);
+  color: var(--c-text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.copy-btn svg { width: 0.8rem; height: 0.8rem; }
+.copy-btn:hover {
+  background: rgba(108,71,255,0.15);
+  color: #8c6fff;
+  border-color: rgba(108,71,255,0.4);
+}
+.copy-btn:active { transform: scale(0.9); }
+
+/* ── 9. Mode & utility bar ────────────────────────────────────────────── */
+.mode-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mode-btn {
+  padding: 0.15rem 0.65rem;
+  border-radius: var(--r-full);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  background: var(--bg-mode-idle);
+  color: var(--c-text-dim);
+  border: 1px solid var(--border);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.mode-btn.active,
+.mode-btn:hover {
+  background: var(--bg-mode-active);
+  color: #fff;
+  border-color: var(--bg-mode-active);
+}
+
+.mode-bar-spacer { flex: 1; }
+
+.util-btn {
+  padding: 0.15rem 0.75rem;
+  border-radius: var(--r-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-btn-num);
+  color: var(--c-text);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.util-btn:hover  { filter: brightness(1.15); }
+.util-btn:active { transform: scale(0.93); }
+.util-btn.danger  { color: var(--c-danger); }
+.util-btn.warning { color: var(--c-warning); }
+
+/* ── 10. Button grid — fills the remaining card height ───────────────── */
+.button-grid {
+  /*
+   * flex: 1 + min-height: 0 lets this section absorb all leftover height.
+   * We use a CSS grid where row heights are equal fractions of that space.
+   */
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* 12 rows (7 sci + 5 num/op + 1 equals) */
+  grid-template-rows: repeat(12, 1fr);
+  gap: clamp(3px, 0.6vw, 6px);
+  padding: clamp(4px, 0.8vw, 10px);
+}
+
+/* ── Base calc button ─────────────────────────────────────────────────── */
+.calc-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* height is driven by the grid row, not a fixed px value */
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-md);
+  font-size: clamp(0.62rem, 1.6vw, 0.84rem);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition:
+    background  var(--t-fast),
+    color       var(--t-fast),
+    border-color var(--t-fast),
+    transform   var(--t-fast);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calc-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.08);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+.calc-btn:hover::after  { opacity: 1; }
+.calc-btn:active::after { opacity: 0; }
+.calc-btn:active { transform: scale(0.91); }
+
+/* Button variants */
+.calc-btn.num {
+  background: var(--bg-btn-num);
+  color: var(--c-text);
+}
+.calc-btn.sci {
+  background: var(--bg-btn-sci);
+  color: var(--c-sci);
+  font-family: var(--font-mono);
+  font-size: clamp(0.58rem, 1.4vw, 0.76rem);
+}
+.calc-btn.op {
+  background: var(--bg-btn-op);
+  color: var(--c-op);
+  font-size: clamp(0.75rem, 1.8vw, 1rem);
+  font-weight: 600;
+}
+.calc-btn.paren {
+  background: var(--bg-btn-paren);
+  color: var(--c-text-dim);
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  font-weight: 600;
+}
+
+/* Equals — spans full row */
+.calc-btn.equals {
+  grid-column: 1 / -1;
+  background: var(--bg-btn-equals);
+  color: var(--c-equals-text);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-color: transparent;
+  box-shadow: 0 3px 14px rgba(108,71,255,0.4);
+}
+.calc-btn.equals:hover {
+  background: #7c5aff;
+  box-shadow: 0 5px 20px rgba(108,71,255,0.55);
+}
+.calc-btn.equals:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(108,71,255,0.3);
+}
+
+/* Hover tints */
+.calc-btn.num:hover,
+.calc-btn.paren:hover { background: color-mix(in srgb, var(--bg-btn-num) 78%, white 22%); }
+.calc-btn.sci:hover   { background: color-mix(in srgb, var(--bg-btn-sci) 73%, white 27%); }
+.calc-btn.op:hover    { background: color-mix(in srgb, var(--bg-btn-op)  73%, white 27%); }
+
+/* ── 11. History panel (slide-in drawer) ──────────────────────────────── */
+.history-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: var(--bg-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-normal);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.history-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.history-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  width: min(380px, 100vw);
+  background: var(--bg-history);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--t-normal), background var(--t-normal);
+  box-shadow: -8px 0 30px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.history-panel.open { transform: translateX(0); }
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.history-header h2 { font-size: 0.95rem; font-weight: 700; }
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.text-btn {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-btn-num);
+  color: var(--c-text-dim);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.text-btn.danger:hover {
+  background: rgba(255,107,107,0.15);
+  color: var(--c-danger);
+  border-color: var(--c-danger);
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.history-empty {
+  text-align: center;
+  color: var(--c-text-muted);
+  font-size: 0.82rem;
+  padding: 2rem 0;
+}
+
+.history-item {
+  background: var(--bg-history-item);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+  animation: slide-in 0.22s ease;
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.history-item:hover {
+  border-color: var(--border-focus);
+  background: color-mix(in srgb, var(--bg-history-item) 85%, #6c47ff 15%);
+}
+
+.history-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+.history-expr {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--c-expression);
+  word-break: break-all;
+  flex: 1;
+}
+.history-delete-btn {
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text-muted);
+  background: transparent;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.history-delete-btn svg { width: 0.75rem; height: 0.75rem; }
+.history-delete-btn:hover {
+  background: rgba(255,107,107,0.15);
+  color: var(--c-danger);
+}
+
+.history-result {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--c-result);
+  margin-top: 0.15rem;
+}
+.history-result::before { content: '= '; color: var(--c-text-muted); }
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+}
+.history-mode {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: var(--r-full);
+  background: rgba(108,71,255,0.12);
+  color: #8c6fff;
+  border: 1px solid rgba(108,71,255,0.2);
+}
+.history-time { font-size: 0.67rem; color: var(--c-text-muted); }
+
+/* ── 12. Toast ────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0.8rem);
+  z-index: 9999;
+  background: var(--bg-btn-op);
+  color: var(--c-text);
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--r-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: rgba(105,240,174,0.15); color: var(--c-success); border-color: var(--c-success); }
+.toast.error   { background: rgba(255,107,107,0.15); color: var(--c-danger);  border-color: var(--c-danger);  }
+
+/* ── 13. Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-text-muted); }
+
+/* ── 14. Responsive tweaks ────────────────────────────────────────────── */
+
+/* Compact header on small screens */
+@media (max-width: 480px) {
+  .app-header { padding: 0.4rem 0.8rem; }
+  .brand-sub  { display: none; }
+  .icon-btn span { display: none; }
+  .brand-icon { font-size: 1.3rem; }
+  .brand-name { font-size: 0.95rem; }
+
+  .app-main { padding: 0.3rem 0.4rem; }
+
+  .calculator-card { border-radius: var(--r-lg); }
+
+  .history-panel { width: 100vw; }
+}
+
+/* Very short viewports (landscape phone) */
+@media (max-height: 520px) {
+  .display-area { padding: 0.3rem 0.75rem 0.25rem; }
+  .expression-display { font-size: 0.72rem; max-height: 1.8rem; }
+  .result-display { font-size: 1.2rem; }
+  .mode-bar { padding: 0.15rem 0.6rem; }
+  .button-grid { gap: 2px; padding: 3px; }
+}
+
+/* ── 15. Accessibility ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VOICE AI CARD STYLES
+   All voice-related styles are isolated here so they cannot
+   affect any existing calculator styles.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Voice card container ─────────────────────────────────────────────── */
+.voice-card {
+  width: min(340px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: background var(--t-normal), border-color var(--t-normal);
+  /* Subtle purple accent on left edge to distinguish from calc card */
+  border-left: 3px solid rgba(108,71,255,0.5);
+}
+
+/* ── Card header ──────────────────────────────────────────────────────── */
+.voice-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.voice-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voice-card-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.voice-card-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+}
+
+.voice-card-sub {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--c-text-dim);
+  letter-spacing: 0.2px;
+}
+
+.voice-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Voice output toggle button */
+.voice-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  color: var(--c-text-dim);
+  background: transparent;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.voice-toggle-btn svg { width: 0.85rem; height: 0.85rem; }
+.voice-toggle-btn:hover { background: var(--bg-btn-num); color: var(--c-text); border-color: var(--border-focus); }
+.voice-toggle-btn.active { background: rgba(108,71,255,0.18); color: #8c6fff; border-color: rgba(108,71,255,0.4); }
+
+/* ── Mic area ─────────────────────────────────────────────────────────── */
+.voice-mic-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.9rem 0.7rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* ── Mic button ───────────────────────────────────────────────────────── */
+.mic-btn {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6c47ff, #9c6bff);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(108,71,255,0.45);
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  flex-shrink: 0;
+}
+
+.mic-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 28px rgba(108,71,255,0.6);
+}
+
+.mic-btn:active { transform: scale(0.95); }
+
+.mic-btn .mic-icon  { width: 1.4rem; height: 1.4rem; }
+.mic-btn .stop-icon { width: 1.1rem; height: 1.1rem; }
+
+/* Pulse rings — visible only in "listening" state */
+.mic-rings {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mic-rings::before,
+.mic-rings::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(108,71,255,0.5);
+  opacity: 0;
+}
+
+/* State: listening */
+.mic-btn.listening {
+  background: linear-gradient(135deg, #e53935, #ff6b6b);
+  box-shadow: 0 4px 20px rgba(229,57,53,0.5);
+  animation: mic-pulse 1.4s ease-in-out infinite;
+}
+.mic-btn.listening .mic-rings::before {
+  animation: ring-expand 1.4s ease-out infinite;
+}
+.mic-btn.listening .mic-rings::after {
+  animation: ring-expand 1.4s ease-out 0.5s infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.05); }
+}
+
+@keyframes ring-expand {
+  0%   { inset: -2px;  opacity: 0.7; }
+  100% { inset: -18px; opacity: 0; }
+}
+
+/* State: processing */
+.mic-btn.processing {
+  background: linear-gradient(135deg, #f57c00, #ffc947);
+  box-shadow: 0 4px 20px rgba(245,124,0,0.45);
+  animation: mic-spin-border 1s linear infinite;
+}
+
+@keyframes mic-spin-border {
+  0%   { box-shadow: 0 4px 20px rgba(245,124,0,0.45), 0 0 0 2px rgba(255,201,71,0.6); }
+  50%  { box-shadow: 0 4px 20px rgba(245,124,0,0.45), 0 0 0 4px rgba(255,201,71,0.3); }
+  100% { box-shadow: 0 4px 20px rgba(245,124,0,0.45), 0 0 0 2px rgba(255,201,71,0.6); }
+}
+
+/* State: success */
+.mic-btn.success {
+  background: linear-gradient(135deg, #2e7d32, #69f0ae);
+  box-shadow: 0 4px 20px rgba(46,125,50,0.45);
+}
+
+/* State: error */
+.mic-btn.error {
+  background: linear-gradient(135deg, #b71c1c, #ff6b6b);
+  box-shadow: 0 4px 20px rgba(183,28,28,0.45);
+  animation: mic-shake 0.4s ease;
+}
+
+@keyframes mic-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-5px); }
+  75%       { transform: translateX(5px); }
+}
+
+/* ── Voice status label ───────────────────────────────────────────────── */
+.voice-status-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.voice-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color var(--t-fast);
+}
+
+.voice-status.idle       { color: var(--c-text-dim); }
+.voice-status.listening  { color: #ff6b6b; }
+.voice-status.processing { color: #ffc947; }
+.voice-status.success    { color: var(--c-success); }
+.voice-status.error      { color: var(--c-danger); }
+
+/* ── Sound-wave bars ──────────────────────────────────────────────────── */
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.voice-wave.active { opacity: 1; }
+
+.voice-wave span {
+  display: block;
+  width: 3px;
+  height: 6px;
+  border-radius: 2px;
+  background: #ff6b6b;
+  animation: none;
+}
+
+.voice-wave.active span:nth-child(1) { animation: wave-bar 0.9s ease-in-out infinite 0.0s; }
+.voice-wave.active span:nth-child(2) { animation: wave-bar 0.9s ease-in-out infinite 0.15s; }
+.voice-wave.active span:nth-child(3) { animation: wave-bar 0.9s ease-in-out infinite 0.3s; }
+.voice-wave.active span:nth-child(4) { animation: wave-bar 0.9s ease-in-out infinite 0.15s; }
+.voice-wave.active span:nth-child(5) { animation: wave-bar 0.9s ease-in-out infinite 0.0s; }
+
+@keyframes wave-bar {
+  0%, 100% { height: 4px;  opacity: 0.5; }
+  50%       { height: 16px; opacity: 1;   }
+}
+
+/* ── Voice result area ────────────────────────────────────────────────── */
+.voice-result-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 0.9rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Individual result cards */
+.voice-result-card {
+  background: var(--bg-history-item);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.55rem 0.7rem;
+  animation: voice-result-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes voice-result-in {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+.voice-result-card.error-card {
+  border-color: rgba(255,107,107,0.3);
+  background: rgba(255,107,107,0.06);
+}
+
+.voice-transcript {
+  font-size: 0.72rem;
+  color: var(--c-text-dim);
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.voice-transcript::before { content: '🎙️'; font-size: 0.7rem; }
+
+.voice-expr-line {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--c-expression);
+}
+
+.voice-result-value {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--c-result);
+  margin-top: 0.1rem;
+}
+.voice-result-value::before { content: '= '; color: var(--c-text-muted); font-size: 0.85rem; }
+
+.voice-error-msg {
+  font-size: 0.75rem;
+  color: var(--c-danger);
+}
+
+/* ── Voice chip examples ──────────────────────────────────────────────── */
+.voice-examples {
+  padding: 0.4rem 0.9rem 0.75rem;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
+
+.voice-examples-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.voice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.voice-chip {
+  font-size: 0.65rem;
+  font-style: italic;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  background: var(--bg-btn-sci);
+  color: var(--c-sci);
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  cursor: pointer;
+  text-align: left;
+}
+
+.voice-chip:hover {
+  background: color-mix(in srgb, var(--bg-btn-sci) 70%, #6c47ff 30%);
+  border-color: rgba(108,71,255,0.4);
+  transform: translateY(-1px);
+}
+
+.voice-chip:active { transform: scale(0.95); }
+
+/* ── History item voice badge ─────────────────────────────────────────── */
+.history-input-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 1px 5px;
+  border-radius: var(--r-full);
+  text-transform: uppercase;
+}
+
+.history-input-badge.voice {
+  background: rgba(108,71,255,0.15);
+  color: #9c6bff;
+  border: 1px solid rgba(108,71,255,0.25);
+}
+
+.history-input-badge.manual {
+  background: rgba(130,177,255,0.12);
+  color: var(--c-sci);
+  border: 1px solid rgba(130,177,255,0.2);
+}
+
+.history-voice-transcript {
+  font-size: 0.68rem;
+  color: var(--c-text-muted);
+  font-style: italic;
+  margin-top: 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.history-voice-transcript::before { content: '🎙️'; font-size: 0.65rem; }
+
+/* ── No-speech / unsupported notice ──────────────────────────────────── */
+.voice-unsupported {
+  font-size: 0.72rem;
+  color: var(--c-text-muted);
+  text-align: center;
+  padding: 0.5rem 0.9rem;
+  line-height: 1.5;
+}
+
+/* ── Responsive: two-column on wide, stacked on narrow ───────────────── */
+@media (max-width: 780px) {
+  /* On tablet/mobile the two cards stack vertically.
+     The voice card becomes compact — show only mic + chips, hide result area. */
+  #app-main {
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;    /* allow scrolling only on very small screens */
+    overflow-x: hidden;
+  }
+
+  .voice-card {
+    width: min(460px, 100%);
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-left: none;
+    border-top: 3px solid rgba(108,71,255,0.5);
+    max-height: none;
+  }
+
+  .voice-card-header {
+    width: 100%;
+  }
+
+  .voice-mic-area {
+    flex-direction: row;
+    justify-content: center;
+    padding: 0.6rem 0.9rem;
+    gap: 0.9rem;
+    flex: 1;
+  }
+
+  .voice-result-area {
+    display: none;   /* hidden on mobile to save space; results go to calc display */
+  }
+
+  .voice-examples {
+    width: 100%;
+    padding: 0.4rem 0.9rem 0.6rem;
+  }
+}
+
+/* Very narrow: hide examples too to keep it tight */
+@media (max-width: 400px) {
+  .voice-examples { display: none; }
+  .voice-card { border-radius: var(--r-lg); }
+}
