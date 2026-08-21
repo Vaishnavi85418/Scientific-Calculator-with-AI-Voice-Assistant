@@ -22,7 +22,7 @@
 // Automatically uses localhost when running locally,
 // and your Render backend URL when deployed on Vercel/Netlify.
 // TO DEPLOY: replace the render URL below with your actual Render service URL.
-const RENDER_API = "https://scicalc-api.onrender.com/api";
+const RENDER_API = "https://scientific-calculator-with-ai-voice.onrender.com/api";
 const LOCAL_API  = "http://127.0.0.1:8001/api";
 const API_BASE   = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
   ? LOCAL_API
@@ -897,6 +897,20 @@ async function processVoiceCommand(transcript) {
     _appendErrorCard(msg);
     showToast(msg, "error");
   }
+}
+
+// ── Flash the calculator display briefly to signal voice populated it ────
+function _flashCalcDisplay() {
+  const display = dom.resultDisplay;
+  const expr    = dom.expressionDisplay;
+  if (!display) return;
+  // Add a brief highlight class, remove after animation
+  display.classList.add("voice-flash");
+  if (expr) expr.classList.add("voice-flash");
+  setTimeout(() => {
+    display.classList.remove("voice-flash");
+    if (expr) expr.classList.remove("voice-flash");
+  }, 600);
 }
 
 // ── Display voice result in the voice card ────────────────────────────────
